@@ -236,7 +236,7 @@ def get_latest_log_file():
         if latest_created_file != latest_modified_file:
                 logger.info("Most recently created player log differs from most recently modified. Preferring most recently modified.")
 
-        return os.path.join(roblox_log_path, latest_file)
+        return os.path.join(roblox_log_path, latest_modified_file)
     return None
 
 
@@ -686,7 +686,7 @@ def init():
 
 # Console control handler (should catch logoff/shutdown events I think)
 def console_ctrl_handler(ctrl_type):
-        if ctrl_type in (win32con.CTRL_LOGOFF_EVENT, win32con.CTRL_SHUTDOWN_EVENT):
+        if ctrl_type in (win32con.CTRL_LOGOFF_EVENT, win32con.CTRL_SHUTDOWN_EVENT, win32con.CTRL_CLOSE_EVENT, win32con.CTRL_C, win32con.CTRL_BREAK):
                 stop()
         return True
 
