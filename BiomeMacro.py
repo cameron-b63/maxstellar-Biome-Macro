@@ -9,6 +9,9 @@ import customtkinter
 import logging
 import sys
 import ctypes
+import atexit # python standard libray, for graceful exit
+import win32api
+import win32con
 from PIL import Image
 
 logging.basicConfig(
@@ -134,7 +137,7 @@ def get_biome_color(biome):
     except:
         return "ff69b4"
 
-
+@atexit.register
 def stop():
     global stopped
     # write config data
@@ -227,7 +230,12 @@ def get_latest_log_file():
         files = [f for f in os.listdir(roblox_log_path) if f.endswith(".log") and not "Installer" in f]
         if not files:
             return None
-        latest_file = max(files, key=lambda f: os.path.getctime(os.path.join(roblox_log_path, f)))
+        latest_created_file = max(files, key=lambda f: os.path.getctime(os.path.join(roblox_log_path, f))) # find most recently created
+        latest_modified_file = max(files, key=lambda f: os.path.getmtime(os.path.join(roblox_log_path, f))) # find most recently modified
+        
+        if latest_created_file != latest_modified_file:
+                logger.info("Most recently created player log differs from most recently modified. Preferring most recently modified.")
+
         return os.path.join(roblox_log_path, latest_file)
     return None
 
@@ -676,6 +684,15 @@ def init():
         root.title("maxstellar's Biome Macro - Running")
         check_for_hover_text(file)
 
+# Console control handler (should catch logoff/shutdown events I think)
+def console_ctrl_handler(ctrl_type):
+        if ctrl_type in (win32con.CTRL_LOGOFF_EVENT, win32con.CTRL_SHUTDOWN_EVENT):
+                stop()
+        return True
+
+# Main
+
+win32api.SetConsoleCtrlHandler(console_ctrl_handler, True) # Attach graceful shutdown handler to win32api
 
 tabview.set("Webhook")
 
