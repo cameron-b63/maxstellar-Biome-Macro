@@ -9,7 +9,7 @@ import customtkinter
 import logging
 import sys
 import ctypes
-import atexit # python standard libray, for graceful exit
+import atexit # python standard library, for graceful exit
 import win32api
 import win32con
 from PIL import Image
@@ -137,7 +137,6 @@ def get_biome_color(biome):
     except:
         return "ff69b4"
 
-@atexit.register
 def stop():
     global stopped
     # write config data
@@ -171,10 +170,11 @@ def stop():
                 ending_webhook = discord_webhook.DiscordWebhook(url=url)
                 ending_webhook.add_embed(ending_embed)
                 ending_webhook.execute()
-    else:
-        sys.exit()
     stopped = True
 
+    if sys.meta_path is not None:
+            atexit.unregister(stop)
+            sys.exit(0)
 
 def pause():
     global paused
@@ -804,6 +804,8 @@ detectping_field.grid(row=2, column=1, padx=(140, 0), pady=(10, 0), sticky="w")
 min_rarity_to_ping = config['Macro']['min_rarity_to_ping']
 if min_rarity_to_ping != "":
     detectping_field.insert(0, min_rarity_to_ping)
+
+atexit.register(stop)
 
 root.bind("<Destroy>", lambda event: x_stop())
 root.bind("<Button-1>", lambda e: e.widget.focus_set())
